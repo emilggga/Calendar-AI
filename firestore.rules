@@ -1,0 +1,56 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    // Collection: users/{userId}/alarms
+    // Fields:
+    //   - time: string (HH:mm)
+    //   - label: string
+    //   - enabled: boolean
+    //   - days: list of numbers (0-6)
+    //   - createdAt: timestamp
+    // ===============================================================
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isValidAlarm(data) {
+      return data.time is string && data.time.matches('^[0-2][0-9]:[0-5][0-9]$') &&
+             data.enabled is bool &&
+             data.days is list &&
+             (data.label == null || (data.label is string && data.label.size() < 100));
+    }
+
+    function isValidEvent(data) {
+      return data.summary is string && data.summary.size() > 0 && data.summary.size() < 200 &&
+             data.start is timestamp &&
+             data.end is timestamp;
+    }
+
+    match /users/{userId} {
+      match /alarms/{alarmId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidAlarm(request.resource.data);
+        allow update: if isOwner(userId) && isValidAlarm(request.resource.data);
+        allow delete: if isOwner(userId);
+      }
+      match /events/{eventId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidEvent(request.resource.data);
+        allow update: if isOwner(userId) && isValidEvent(request.resource.data);
+        allow delete: if isOwner(userId);
+      }
+      match /settings/main {
+        allow read: if isOwner(userId);
+        allow write: if isOwner(userId);
+      }
+    }
+  }
+}

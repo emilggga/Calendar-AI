@@ -1,0 +1,5 @@
+{
+  "name": "Google Calendar & Alarm Hub",
+  "description": "A comprehensive calendar application with Google Calendar integration, custom alarms, and event notifications.",
+  "requestFramePermissions": ["notifications"]
+}

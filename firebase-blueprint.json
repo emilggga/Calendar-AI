@@ -1,0 +1,52 @@
+{
+  "entities": {
+    "Alarm": {
+      "title": "Alarm",
+      "description": "A user-defined alarm",
+      "type": "object",
+      "properties": {
+        "time": { "type": "string", "description": "HH:mm format" },
+        "label": { "type": "string" },
+        "enabled": { "type": "boolean" },
+        "days": { "type": "array", "items": { "type": "number" }, "description": "0-6 for Sun-Sat" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["time", "enabled", "days"]
+    },
+    "CalendarEvent": {
+      "title": "Calendar Event",
+      "description": "A standalone calendar event",
+      "type": "object",
+      "properties": {
+        "summary": { "type": "string" },
+        "start": { "type": "string", "format": "date-time" },
+        "end": { "type": "string", "format": "date-time" },
+        "description": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["summary", "start", "end"]
+    },
+    "UserSetting": {
+      "title": "UserSetting",
+      "description": "User specific settings",
+      "type": "object",
+      "properties": {
+        "googleCalendarEnabled": { "type": "boolean" }
+      }
+    }
+  },
+  "firestore": {
+    "users/{userId}/alarms/{alarmId}": {
+      "schema": "Alarm",
+      "description": "User alarms"
+    },
+    "users/{userId}/events/{eventId}": {
+      "schema": "CalendarEvent",
+      "description": "User calendar events"
+    },
+    "users/{userId}/settings/main": {
+      "schema": "UserSetting",
+      "description": "User settings"
+    }
+  }
+}

@@ -31,7 +31,6 @@ import {
   Clock, 
   LogOut, 
   LogIn,
-  RefreshCw,
   AlertCircle,
   Sparkles,
   Send,
@@ -343,6 +342,7 @@ export default function App() {
   const [activeAlarm, setActiveAlarm] = useState<Alarm | null>(null);
   const [lastTriggeredMinute, setLastTriggeredMinute] = useState<string>('');
   const [showEventModal, setShowEventModal] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
   const [newEventSummary, setNewEventSummary] = useState('');
   const [newEventDate, setNewEventDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [newEventTime, setNewEventTime] = useState('12:00');
@@ -387,10 +387,18 @@ export default function App() {
   }, [user]);
 
   const handleLogin = async () => {
+    setLoginError(null);
     try {
       await signInWithPopup(auth, googleProvider);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Login failed:", error);
+      if (error.code === 'auth/popup-blocked') {
+        setLoginError("Popup was blocked by your browser. Please allow popups for this site.");
+      } else if (error.code === 'auth/unauthorized-domain') {
+        setLoginError("This domain is not authorized for Google Login. Please contact support.");
+      } else {
+        setLoginError(error.message || "Login failed. Please try again.");
+      }
     }
   };
 
@@ -636,6 +644,14 @@ export default function App() {
           </div>
           <h1 className="text-2xl font-semibold text-zinc-900 mb-2">Welcome Back</h1>
           <p className="text-zinc-500 mb-8">Sign in with Google to sync your calendar and manage your alarms.</p>
+          
+          {loginError && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-100 rounded-2xl flex items-start gap-3 text-left">
+              <AlertCircle className="text-red-600 shrink-0" size={18} />
+              <p className="text-xs text-red-800 leading-relaxed">{loginError}</p>
+            </div>
+          )}
+
           <button 
             onClick={handleLogin}
             className="w-full flex items-center justify-center gap-3 bg-zinc-900 text-white py-4 rounded-2xl font-medium hover:bg-zinc-800 transition-all active:scale-[0.98]"
@@ -643,6 +659,10 @@ export default function App() {
             <LogIn size={20} />
             Continue with Google
           </button>
+          
+          <p className="mt-6 text-[10px] text-zinc-400 uppercase tracking-widest">
+            Make sure to allow popups in your browser
+          </p>
         </motion.div>
       </div>
     );
